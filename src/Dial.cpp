@@ -591,11 +591,20 @@ namespace dial
 			return g_menuClass;
 		}
 
+		// the wait menu is a CommonUI activatable widget: the game's layer stack shows it through Slate, so its UMG Slot stays
+		// empty while it is up (read in game 2026-10-01: Slot null on the live WBP_ModernMenu_SleepWait_C) - bIsActive is
+		// what says it is the menu in use; a Slot still counts if a future build parents it in UMG
+		bool Placed(UE::UObject* a_menu)
+		{
+			auto* active = Prop<bool>(a_menu, "bIsActive");
+			return a_menu && (SlotOf(a_menu) || (active && *active));
+		}
+
 		bool OnScreen(UE::UObject* a_menu)
 		{
 			auto* v = Prop<std::uint8_t>(a_menu, "Visibility");
 			auto* o = Prop<float>(a_menu, "RenderOpacity");
-			return a_menu && SlotOf(a_menu) && (!v || (*v != kCollapsed && *v != kHidden)) && (!o || *o > 0.05f);
+			return Placed(a_menu) && (!v || (*v != kCollapsed && *v != kHidden)) && (!o || *o > 0.05f);
 		}
 
 		UE::UObject* Menu(UE::UObject* a_vm)
@@ -603,7 +612,7 @@ namespace dial
 			auto* vis = Prop<bool>(a_vm, "bVisible");
 			if (!vis || !*vis) return nullptr;
 			auto* m = g_menu.Get();
-			if (m && SlotOf(m)) return m;
+			if (m && Placed(m)) return m;
 			const ULONGLONG now = GetTickCount64();
 			if (now - g_menuScanAt < 1000) return nullptr;   // the object array scan: at most once a second, only while the view model says it is up
 			g_menuScanAt = now;
@@ -618,7 +627,7 @@ namespace dial
 					auto* item = arr->IndexToObject(i);
 					auto* o = item ? reinterpret_cast<UE::UObject*>(item->object) : nullptr;
 					// a template (class default or archetype, flags 0x30) is never the menu on screen
-					if (o && o->GetClass() == cls && (static_cast<std::int32_t>(o->objectFlags) & 0x30) == 0 && SlotOf(o)) found = o;
+					if (o && o->GetClass() == cls && (static_cast<std::int32_t>(o->objectFlags) & 0x30) == 0 && Placed(o)) found = o;
 				}
 				arr->UnlockInternalArray();
 			}
