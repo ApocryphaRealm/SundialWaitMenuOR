@@ -1,8 +1,12 @@
 # Changelog
 
-## Unreleased
+## 1.0.0 - 2026-10-01 - working
 
-- Fixed (untested): the dial never appeared. The owner: *"I don't see the wait menu that we designed in action."* The
+Confirmed by the owner in game on 3f52451 (DLL sha256 eb785f729bef, installed at the 05:38 launch): "Sundial
+weight menu works" - the dial drawn and a wait run.
+
+
+- Fixed during testing: the dial never appeared. The owner: *"I don't see the wait menu that we designed in action."* The
   log found the menu's class and nothing more, and `sundial.status` read `builds 0`, `menu not found`. The live
   `WBP_ModernMenu_SleepWait_C` is a CommonUI activatable widget that the game's layer stack shows through Slate, so its
   UMG `Slot` is null (read in game) - and the menu was only accepted with a Slot. It is now accepted by its own
